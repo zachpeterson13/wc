@@ -1,8 +1,13 @@
+use anyhow::{Ok, Result};
 use clap::Parser;
-mod cli;
 
-fn main() {
+mod cli;
+mod wc;
+
+fn main() -> Result<()> {
     let cli = cli::Cli::parse();
 
-    println!("{:?}", cli);
+    wc::wc(cli)?;
+
+    Ok(())
 }

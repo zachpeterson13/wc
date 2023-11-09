@@ -18,11 +18,11 @@ pub struct Cli {
     file: Vec<String>,
 
     /// print the byte counts
-    #[arg(short, long)]
+    #[arg(short = 'c', long)]
     bytes: bool,
 
     /// print the character counts
-    #[arg(short, long)]
+    #[arg(short = 'm', long)]
     chars: bool,
 
     /// print the newline counts
@@ -42,4 +42,64 @@ pub struct Cli {
     /// print the word counts
     #[arg(short, long)]
     words: bool,
+}
+
+impl Cli {
+    fn is_files_from(&self) -> bool {
+        self.files_from.is_some()
+    }
+
+    pub fn get_filenames(&self) -> Vec<&str> {
+        let mut result = vec![];
+
+        if self.is_files_from() {
+            todo!()
+        } else {
+            if self.file.is_empty() {
+                result.push("-");
+
+                return result;
+            }
+
+            for filename in &self.file {
+                result.push(filename.as_str());
+            }
+        }
+
+        result
+    }
+
+    pub fn get_flags(&self) -> Flags {
+        if !self.bytes && !self.chars && !self.lines && !self.max_line_length && !self.words {
+            return Default::default();
+        }
+
+        Flags {
+            bytes: self.bytes,
+            chars: self.chars,
+            lines: self.lines,
+            max_line_length: self.max_line_length,
+            words: self.words,
+        }
+    }
+}
+
+pub struct Flags {
+    pub bytes: bool,
+    pub chars: bool,
+    pub lines: bool,
+    pub max_line_length: bool,
+    pub words: bool,
+}
+
+impl Default for Flags {
+    fn default() -> Self {
+        Flags {
+            bytes: true,
+            chars: false,
+            lines: true,
+            max_line_length: false,
+            words: true,
+        }
+    }
 }
