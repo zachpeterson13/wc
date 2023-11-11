@@ -1,6 +1,9 @@
 use assert_cmd::prelude::*;
 // use predicates::prelude::*;
-use std::process::Command;
+use std::{
+    io::Write,
+    process::{Command, Stdio},
+};
 
 #[test]
 fn one_file_default_flags() -> Result<(), Box<dyn std::error::Error>> {
@@ -123,6 +126,114 @@ fn multiple_files_L_flag() -> Result<(), Box<dyn std::error::Error>> {
 
     let expected_out = String::from_utf8(expected.output()?.stdout)?;
     let actual_out = String::from_utf8(actual.output()?.stdout)?;
+
+    assert_eq!(expected_out, actual_out);
+
+    Ok(())
+}
+
+#[test]
+fn stdin_default_flags() -> Result<(), Box<dyn std::error::Error>> {
+    let input = Command::new("ls").arg("-aFl").arg("/").output()?.stdout;
+    let args = vec!["-"];
+
+    let mut expected = Command::new("wc")
+        .args(&args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()?;
+    expected.stdin.as_mut().unwrap().write_all(&input)?;
+
+    let mut actual = Command::cargo_bin("wc")?
+        .args(&args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()?;
+    actual.stdin.as_mut().unwrap().write_all(&input)?;
+
+    let expected_out = String::from_utf8(expected.wait_with_output()?.stdout)?;
+    let actual_out = String::from_utf8(actual.wait_with_output()?.stdout)?;
+
+    assert_eq!(expected_out, actual_out);
+
+    Ok(())
+}
+
+#[test]
+fn stdin_c_flag() -> Result<(), Box<dyn std::error::Error>> {
+    let input = Command::new("ls").arg("-aFl").arg("/").output()?.stdout;
+    let args = vec!["-c", "-"];
+
+    let mut expected = Command::new("wc")
+        .args(&args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()?;
+    expected.stdin.as_mut().unwrap().write_all(&input)?;
+
+    let mut actual = Command::cargo_bin("wc")?
+        .args(&args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()?;
+    actual.stdin.as_mut().unwrap().write_all(&input)?;
+
+    let expected_out = String::from_utf8(expected.wait_with_output()?.stdout)?;
+    let actual_out = String::from_utf8(actual.wait_with_output()?.stdout)?;
+
+    assert_eq!(expected_out, actual_out);
+
+    Ok(())
+}
+
+#[test]
+fn stdin_and_files_default_flags() -> Result<(), Box<dyn std::error::Error>> {
+    let input = Command::new("ls").arg("-aFl").arg("/").output()?.stdout;
+    let args = vec!["./src/main.rs", "-"];
+
+    let mut expected = Command::new("wc")
+        .args(&args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()?;
+    expected.stdin.as_mut().unwrap().write_all(&input)?;
+
+    let mut actual = Command::cargo_bin("wc")?
+        .args(&args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()?;
+    actual.stdin.as_mut().unwrap().write_all(&input)?;
+
+    let expected_out = String::from_utf8(expected.wait_with_output()?.stdout)?;
+    let actual_out = String::from_utf8(actual.wait_with_output()?.stdout)?;
+
+    assert_eq!(expected_out, actual_out);
+
+    Ok(())
+}
+
+#[test]
+fn stdin_and_files_c_flag() -> Result<(), Box<dyn std::error::Error>> {
+    let input = Command::new("ls").arg("-aFl").arg("/").output()?.stdout;
+    let args = vec!["-c", "./src/main.rs", "-"];
+
+    let mut expected = Command::new("wc")
+        .args(&args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()?;
+    expected.stdin.as_mut().unwrap().write_all(&input)?;
+
+    let mut actual = Command::cargo_bin("wc")?
+        .args(&args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()?;
+    actual.stdin.as_mut().unwrap().write_all(&input)?;
+
+    let expected_out = String::from_utf8(expected.wait_with_output()?.stdout)?;
+    let actual_out = String::from_utf8(actual.wait_with_output()?.stdout)?;
 
     assert_eq!(expected_out, actual_out);
 
