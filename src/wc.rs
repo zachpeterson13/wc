@@ -92,6 +92,7 @@ pub fn wc(args: cli::Cli) -> Result<()> {
     let mut counts_vec = vec![];
 
     for filename in &filenames {
+        // TODO: support for reading from stdin
         let counts = wc_file(filename)?;
 
         totals += &counts;

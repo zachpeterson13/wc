@@ -4,7 +4,7 @@ use clap::Parser;
 #[command(author, version, long_about = None)]
 #[command(override_usage(
     "wc [OPTION]... [FILE]...
-      or:  wc [OPTION]... --files0-from=F
+  or:  wc [OPTION]... --files0-from=F
 Print newline, word, and byte counts for each FILE, and a total line if
 more than one FILE is specified.  A word is a non-zero-length sequence of
 characters delimited by white space.
@@ -53,6 +53,7 @@ impl Cli {
         let mut result = vec![];
 
         if self.is_files_from() {
+            // TODO: generate filename list from provided file/stdin
             todo!()
         } else {
             if self.file.is_empty() {
