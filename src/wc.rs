@@ -5,7 +5,7 @@ use std::{
     ops::AddAssign,
 };
 
-use anyhow::Result;
+use anyhow::{Ok, Result};
 
 use crate::cli;
 
@@ -88,12 +88,18 @@ pub fn wc(args: cli::Cli) -> Result<()> {
     let filenames = args.get_filenames();
     let mut totals = Counts::new("total".to_string());
     let flags = args.get_flags();
+    let mut got_stdin = false;
 
     let mut counts_vec = vec![];
 
     for filename in &filenames {
         // TODO: support for reading from stdin
-        let counts = wc_file(filename)?;
+        let counts = if *filename == "-" {
+            got_stdin = true;
+            wc_stdin()
+        } else {
+            wc_file(filename)?
+        };
 
         totals += &counts;
 
@@ -103,6 +109,9 @@ pub fn wc(args: cli::Cli) -> Result<()> {
     // offset needs to be set if multiple flags are set and multiple files
     let offset = if counts_vec.len() == 1 && flags.is_single() {
         0
+    } else if got_stdin {
+        // why does wc do this???
+        7
     } else {
         totals.get_offset()
     };
@@ -134,6 +143,22 @@ fn wc_file(filename: &str) -> Result<Counts> {
     }
 
     Ok(counts)
+}
+
+fn wc_stdin() -> Counts {
+    let mut counts = Counts::new("-".to_string());
+
+    let buf_reader = BufReader::new(std::io::stdin().lock());
+
+    for line in buf_reader.lines().flatten() {
+        counts.lines += 1;
+        counts.bytes += line.len() + 1;
+        counts.chars += line.chars().count() + 1;
+        counts.words += line.split_whitespace().count();
+        counts.max_line_length = cmp::max(counts.max_line_length, line.len());
+    }
+
+    counts
 }
 
 #[cfg(test)]
