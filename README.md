@@ -4,7 +4,7 @@ A worse implementation of gnu wc but in rust.
 
 ```
 Usage: wc [OPTION]... [FILE]...
-      or:  wc [OPTION]... --files0-from=F
+  or:  wc [OPTION]... --files0-from=F
 Print newline, word, and byte counts for each FILE, and a total line if
 more than one FILE is specified.  A word is a non-zero-length sequence of
 characters delimited by white space.
