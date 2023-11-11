@@ -91,6 +91,17 @@ pub struct Flags {
     pub max_line_length: bool,
     pub words: bool,
 }
+impl Flags {
+    pub fn is_single(&self) -> bool {
+        let sum = self.bytes as u8
+            + self.chars as u8
+            + self.lines as u8
+            + self.max_line_length as u8
+            + self.words as u8;
+
+        sum == 1
+    }
+}
 
 impl Default for Flags {
     fn default() -> Self {

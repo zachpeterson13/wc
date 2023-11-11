@@ -27,28 +27,50 @@ impl Counts {
         }
     }
 
-    fn write_counts(&self, flags: &cli::Flags) {
+    fn write_counts(&self, flags: &cli::Flags, offset: usize) {
         if flags.lines {
-            print!("{} ", self.lines);
+            print!("{:>offset$} ", self.lines);
         }
 
         if flags.words {
-            print!("{} ", self.words);
+            print!("{:>offset$} ", self.words);
         }
 
         if flags.bytes {
-            print!("{} ", self.bytes);
+            print!("{:>offset$} ", self.bytes);
         }
 
         if flags.chars {
-            print!("{} ", self.chars);
+            print!("{:>offset$} ", self.chars);
         }
 
         if flags.max_line_length {
-            print!("{} ", self.max_line_length);
+            print!("{:>offset$} ", self.max_line_length);
         }
 
-        println!("{} ", self.name);
+        println!("{}", self.name);
+    }
+
+    fn get_offset(&self) -> usize {
+        let mut temp = self.bytes;
+        let mut count = 0;
+
+        while temp != 0 {
+            temp /= 10;
+            count += 1;
+        }
+
+        count
+    }
+}
+
+impl AddAssign<&Self> for Counts {
+    fn add_assign(&mut self, rhs: &Self) {
+        self.bytes += rhs.bytes;
+        self.chars += rhs.chars;
+        self.lines += rhs.lines;
+        self.words += rhs.words;
+        self.max_line_length = cmp::max(self.max_line_length, rhs.max_line_length);
     }
 }
 
@@ -58,7 +80,7 @@ impl AddAssign for Counts {
         self.chars += rhs.chars;
         self.lines += rhs.lines;
         self.words += rhs.words;
-        self.max_line_length += rhs.max_line_length;
+        self.max_line_length = cmp::max(self.max_line_length, rhs.max_line_length);
     }
 }
 
@@ -67,16 +89,29 @@ pub fn wc(args: cli::Cli) -> Result<()> {
     let mut totals = Counts::new("total".to_string());
     let flags = args.get_flags();
 
+    let mut counts_vec = vec![];
+
     for filename in &filenames {
         let counts = wc_file(filename)?;
 
-        counts.write_counts(&flags);
+        totals += &counts;
 
-        totals += counts;
+        counts_vec.push(counts);
+    }
+
+    // offset needs to be set if multiple flags are set and multiple files
+    let offset = if counts_vec.len() == 1 && flags.is_single() {
+        0
+    } else {
+        totals.get_offset()
+    };
+
+    for counts in counts_vec {
+        counts.write_counts(&flags, offset);
     }
 
     if filenames.len() > 1 {
-        totals.write_counts(&flags);
+        totals.write_counts(&flags, offset);
     }
 
     Ok(())
@@ -86,13 +121,12 @@ fn wc_file(filename: &str) -> Result<Counts> {
     let mut counts = Counts::new(filename.to_string());
 
     let file = File::open(filename)?;
-    let metadata = file.metadata()?;
+    // TODO: add some kind of check to make sure `file` is a file and not a directory or something
     let buf_reader = BufReader::new(file);
-
-    counts.bytes += metadata.len() as usize;
 
     for line in buf_reader.lines().flatten() {
         counts.lines += 1;
+        counts.bytes += line.len() + 1;
         counts.chars += line.chars().count() + 1;
         counts.words += line.split_whitespace().count();
         counts.max_line_length = cmp::max(counts.max_line_length, line.len());
