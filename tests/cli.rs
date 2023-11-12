@@ -1,4 +1,5 @@
 use assert_cmd::prelude::*;
+use assert_fs::prelude::*;
 // use predicates::prelude::*;
 use std::{
     io::Write,
@@ -234,6 +235,79 @@ fn stdin_and_files_c_flag() -> Result<(), Box<dyn std::error::Error>> {
 
     let expected_out = String::from_utf8(expected.wait_with_output()?.stdout)?;
     let actual_out = String::from_utf8(actual.wait_with_output()?.stdout)?;
+
+    assert_eq!(expected_out, actual_out);
+
+    Ok(())
+}
+
+#[test]
+fn file_from_default_flags() -> Result<(), Box<dyn std::error::Error>> {
+    let file = assert_fs::NamedTempFile::new("sample.txt")?;
+    file.write_str("./src/main.rs")?;
+
+    let args = vec!["--files0-from", file.path().to_str().unwrap()];
+
+    let mut expected = Command::new("wc");
+    expected.args(&args);
+
+    let mut actual = Command::cargo_bin("wc")?;
+    actual.args(&args);
+
+    expected.assert().success();
+    actual.assert().success();
+
+    let expected_out = String::from_utf8(expected.output()?.stdout)?;
+    let actual_out = String::from_utf8(actual.output()?.stdout)?;
+
+    assert_eq!(expected_out, actual_out);
+
+    Ok(())
+}
+
+#[test]
+fn files_from_default_flags() -> Result<(), Box<dyn std::error::Error>> {
+    let file = assert_fs::NamedTempFile::new("sample.txt")?;
+    file.write_str("./src/main.rs\0./src/cli.rs\0./src/wc.rs")?;
+
+    let args = vec!["--files0-from", file.path().to_str().unwrap()];
+
+    let mut expected = Command::new("wc");
+    expected.args(&args);
+
+    let mut actual = Command::cargo_bin("wc")?;
+    actual.args(&args);
+
+    expected.assert().success();
+    actual.assert().success();
+
+    let expected_out = String::from_utf8(expected.output()?.stdout)?;
+    let actual_out = String::from_utf8(actual.output()?.stdout)?;
+
+    assert_eq!(expected_out, actual_out);
+
+    Ok(())
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn files_from_L_flag() -> Result<(), Box<dyn std::error::Error>> {
+    let file = assert_fs::NamedTempFile::new("sample.txt")?;
+    file.write_str("./src/main.rs\0./src/cli.rs\0./src/wc.rs")?;
+
+    let args = vec!["--files0-from", file.path().to_str().unwrap(), "-L"];
+
+    let mut expected = Command::new("wc");
+    expected.args(&args);
+
+    let mut actual = Command::cargo_bin("wc")?;
+    actual.args(&args);
+
+    expected.assert().success();
+    actual.assert().success();
+
+    let expected_out = String::from_utf8(expected.output()?.stdout)?;
+    let actual_out = String::from_utf8(actual.output()?.stdout)?;
 
     assert_eq!(expected_out, actual_out);
 
