@@ -2,6 +2,10 @@
 
 A worse implementation of gnu wc but in rust.
 
+Not identical output to wc because it would take a lot of effort to cover all the strange edge cases
+For example: wc does not count the last line of a file if it doesnt have the end of line char.
+My implementation does which can cause the results to be slightly different.
+
 ```
 Usage: wc [OPTION]... [FILE]...
   or:  wc [OPTION]... --files0-from=F
