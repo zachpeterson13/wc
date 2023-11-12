@@ -1,4 +1,6 @@
+use anyhow::Result;
 use clap::Parser;
+use std::fs;
 
 #[derive(Parser, Debug)]
 #[command(author, version, long_about = None)]
@@ -49,25 +51,34 @@ impl Cli {
         self.files_from.is_some()
     }
 
-    pub fn get_filenames(&self) -> Vec<&str> {
+    pub fn get_filenames(&self) -> Result<Vec<String>> {
         let mut result = vec![];
 
         if self.is_files_from() {
-            // TODO: generate filename list from provided file/stdin
-            todo!()
+            let files_from = self.files_from.clone().unwrap();
+
+            if files_from == "-" {
+                todo!()
+            } else {
+                let filenames = fs::read_to_string(files_from)?;
+
+                for filename in filenames.split('\0') {
+                    result.push(filename.to_string());
+                }
+            }
         } else {
             if self.file.is_empty() {
-                result.push("-");
+                result.push("-".to_string());
 
-                return result;
+                return Ok(result);
             }
 
             for filename in &self.file {
-                result.push(filename.as_str());
+                result.push(filename.to_string());
             }
         }
 
-        result
+        Ok(result)
     }
 
     pub fn get_flags(&self) -> Flags {

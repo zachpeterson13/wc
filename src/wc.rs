@@ -85,7 +85,7 @@ impl AddAssign for Counts {
 }
 
 pub fn wc(args: cli::Cli) -> Result<()> {
-    let filenames = args.get_filenames();
+    let filenames = args.get_filenames()?;
     let mut totals = Counts::new("total".to_string());
     let flags = args.get_flags();
     let mut got_stdin = false;
