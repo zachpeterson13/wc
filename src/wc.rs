@@ -93,7 +93,6 @@ pub fn wc(args: cli::Cli) -> Result<()> {
     let mut counts_vec = vec![];
 
     for filename in &filenames {
-        // TODO: support for reading from stdin
         let counts = if *filename == "-" {
             got_stdin = true;
             wc_stdin()
@@ -160,6 +159,10 @@ fn wc_stdin() -> Counts {
 
     counts
 }
+//14555376
+//455124776
+// 92211364
+// 91204399
 
 #[cfg(test)]
 mod tests {}

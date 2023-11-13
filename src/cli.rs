@@ -1,6 +1,9 @@
 use anyhow::Result;
 use clap::Parser;
-use std::fs;
+use std::{
+    fs,
+    io::{stdin, Read},
+};
 
 #[derive(Parser, Debug)]
 #[command(author, version, long_about = None)]
@@ -58,9 +61,16 @@ impl Cli {
             let files_from = self.files_from.clone().unwrap();
 
             if files_from == "-" {
-                todo!()
+                let mut filenames = String::new();
+                stdin().lock().read_to_string(&mut filenames)?;
+                let filenames = filenames.trim_end_matches('\0');
+
+                for filename in filenames.split('\0') {
+                    result.push(filename.to_string());
+                }
             } else {
                 let filenames = fs::read_to_string(files_from)?;
+                let filenames = filenames.trim_end_matches('\0');
 
                 for filename in filenames.split('\0') {
                     result.push(filename.to_string());
